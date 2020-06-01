@@ -1,29 +1,29 @@
 package can
 
 import "math"
-//import "fmt"
+import "fmt"
 type Node struct {
-    //*Rangeと宣言したので、ownRangeでポインターを取得
-    ownRange *Range
+    //*Rangeと宣言したので、OwnRangeでポインターを取得
+    OwnRange *Range
     //スライス
     neighbors []*Node
 }
 
 // bootstrapのコンストラクタ
-func initBootstrap(xs int, ys int, xe int, ye int) *Node {
+func InitBootstrap(xs int, ys int, xe int, ye int) *Node {
      bootstrap := new(Node)
-     bootstrap.ownRange = initRange(xs, ys, xe, ye)
+     bootstrap.OwnRange = initRange(xs, ys, xe, ye)
      return bootstrap
 }
 
 // Nodeのコンストラクタ
-func initNode(x int, y int, bootstrap *Node) {
+func InitNode(x int, y int, bootstrap *Node) {
     // 構造体(オブジェクトとみなす)を生成
     newNodeObj := new(Node)
     
-    chargeNode := bootstrap.findNode(x,y)   
+    chargeNode := bootstrap.FindNode(x,y)   
 
-    newNodeObj.ownRange = chargeNode.getDividedRange(x,y)
+    newNodeObj.OwnRange = chargeNode.getDividedRange(x,y)
     
     //分割したノードから取得した隣接するノードを新規ノードに登録する
     //この際に入れてもいいノードかの判定を行い、追加したのであれば、追加要請を出す
@@ -91,14 +91,14 @@ func (nodeObj *Node)searchRemoveNode() {
 // nodeをNeighborsから削除してもらう
 func (nodeObj *Node)removeDecision(searchNodeObj *Node) bool {
     removeFlag := false
-    nodeObjXs := nodeObj.ownRange.xs
-    nodeObjXe := nodeObj.ownRange.xe
-    nodeObjYs := nodeObj.ownRange.ys
-    nodeObjYe := nodeObj.ownRange.ye
-    searchNodeObjXs := searchNodeObj.ownRange.xs
-    searchNodeObjXe := searchNodeObj.ownRange.xe
-    searchNodeObjYs := searchNodeObj.ownRange.ys
-    searchNodeObjYe := searchNodeObj.ownRange.ye
+    nodeObjXs := nodeObj.OwnRange.xs
+    nodeObjXe := nodeObj.OwnRange.xe
+    nodeObjYs := nodeObj.OwnRange.ys
+    nodeObjYe := nodeObj.OwnRange.ye
+    searchNodeObjXs := searchNodeObj.OwnRange.xs
+    searchNodeObjXe := searchNodeObj.OwnRange.xe
+    searchNodeObjYs := searchNodeObj.OwnRange.ys
+    searchNodeObjYe := searchNodeObj.OwnRange.ye
     //右上
     if searchNodeObjXs >= nodeObjXe && searchNodeObjYs >= nodeObjYe{
         removeFlag =true
@@ -116,20 +116,14 @@ func (nodeObj *Node)removeDecision(searchNodeObj *Node) bool {
         removeFlag =true
     }
     //x軸方向で見たときに隣合わないノード(y軸は同じ)
-    if searchNodeObjYs == nodeObjYs && searchNodeObjYe == nodeObjYe{
-        if searchNodeObjXe != nodeObjXs && searchNodeObjXs!= nodeObjXe{
+    if (searchNodeObjXe < nodeObjXs || searchNodeObjXs > nodeObjXe) {
             removeFlag =true
-        }
-    }
-    
-    //y軸方向で見たときに隣合わないノード(x軸は同じ)
-    if searchNodeObjXs == nodeObjXs && searchNodeObjXe == nodeObjXe{
-        if searchNodeObjYe != nodeObjYs && searchNodeObjYs!= nodeObjYe{
-            removeFlag =true
-        }
     }
 
-    
+    //y軸方向で見たときに隣合わないノード(x軸は同じ)
+    if searchNodeObjYe < nodeObjYs || searchNodeObjYs > nodeObjYe{
+        removeFlag =true
+    }
     return removeFlag
 }
 
@@ -137,33 +131,42 @@ func (nodeObj *Node)removeDecision(searchNodeObj *Node) bool {
 // bootstrapのコンストラクタ
 // 戻り値は構造体のポイント
 func (nodeObj *Node)getDividedRange(x int , y int) *Range {
-    newRangeObj := nodeObj.ownRange.divide(x, y)
+    newRangeObj := nodeObj.OwnRange.divide(x, y)
     return newRangeObj
 }
 
 
 // 再帰を使ってx,yを担当しているノードを取得する
-func (nodeObj *Node) findNode(x int,y int) *Node {
+func (nodeObj *Node) FindNode(x int,y int) *Node {
 
-    if nodeObj.ownRange.contain(x,y){
+    if nodeObj.OwnRange.contain(x,y){
         return nodeObj
     }
 
-    nodeObjXMiddle := nodeObj.ownRange.xMiddle
-    nodeObjYMiddle := nodeObj.ownRange.yMiddle
-
+    mostSmallAbsNodeObj := new(Node)
     //math.absはfloat64しか対応していない
-    mostSmallAbsError := math.Abs(float64(nodeObjXMiddle - x)) + math.Abs(float64(nodeObjYMiddle - y))
+    //初期値として絶対にありえないAbsErrorを設定する
+    mostSmallAbsError := 100
     mostSmallAbsErrorInt := int(mostSmallAbsError)
-    var mostSmallAbsNodeObj *Node
     for _,searchNodeObj := range nodeObj.neighbors {
-        searchNodeObjXMiddle := searchNodeObj.ownRange.xMiddle
-        searchNodeObjYMiddle := searchNodeObj.ownRange.xMiddle
+        searchNodeObjXMiddle := searchNodeObj.OwnRange.xMiddle
+        searchNodeObjYMiddle := searchNodeObj.OwnRange.yMiddle
         absError := math.Abs(float64(searchNodeObjXMiddle - x)) + math.Abs(float64(searchNodeObjYMiddle - y))
         absErrorInt := int(absError)
         if absErrorInt <= mostSmallAbsErrorInt{
+            mostSmallAbsErrorInt = absErrorInt
             mostSmallAbsNodeObj = searchNodeObj
+
         }
     }
-    return mostSmallAbsNodeObj.findNode(x,y)
+    return mostSmallAbsNodeObj.FindNode(x,y)
+}
+
+// bootstrapのコンストラクタ
+// 戻り値は構造体のポイント
+func (nodeObj *Node)ShowInfo() {
+    fmt.Println(nodeObj.OwnRange)
+    for _,neighNodeObj := range nodeObj.neighbors {
+        fmt.Println(neighNodeObj.OwnRange)
+    }
 }
