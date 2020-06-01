@@ -28,7 +28,7 @@ func initRange(xs int, ys int, xe int, ye int) *Range {
 
 // x, yが領域に含まれるか否かを返すメソッド
 // trueならこのrangeObjの領域にx, yが含まれる
-func (rangeObj Range) contain(x int,y int) bool {
+func (rangeObj *Range) contain(x int,y int) bool {
 	containFlag := false
 	if x <= rangeObj.xe  && x >= rangeObj.xs{
 		if y <= rangeObj.ye  && y >= rangeObj.ys{
@@ -90,7 +90,7 @@ func (rangeObj *Range) divide(x int,y int) *Range {
 
 			//分割されるrangeObjの範囲を変更
 			rangeObj.ye = rangeObj.yMiddle
-			rangeObj.yMiddle = int((rangeObj.xe + rangeObj.xs)/2)
+			rangeObj.yMiddle = int((rangeObj.ye + rangeObj.ys)/2)
      		return newRangeObj
 		}else{
 			//新しいノードに渡す分割
@@ -104,7 +104,7 @@ func (rangeObj *Range) divide(x int,y int) *Range {
 			
 			//分割されるrangeObjの範囲を変更
 			rangeObj.ys = rangeObj.yMiddle
-			rangeObj.yMiddle = int((rangeObj.xe + rangeObj.xs)/2)
+			rangeObj.yMiddle = int((rangeObj.ye + rangeObj.ys)/2)
      		return newRangeObj
 		}
 	}
